@@ -15,7 +15,7 @@ public class MainActivity extends Activity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
+
 		setContentView(R.layout.activity_main);
 	}
 
@@ -60,18 +60,17 @@ public class MainActivity extends Activity {
 					recorder.setRecordPositionUpdateListener(new OnRecordPositionUpdateListener() {
 						@Override
 						public void onPeriodicNotification(AudioRecord recorder) {
-							
-							
+
 							short[] buffer = buffers[++lastBuffer % buffers.length];
 							recorder.read(buffer, 0, bufferSize);
-//							Log.v("hh", "onPeriodicNotification");
 							
-							
-							long sum = 0;
-							for (int i = 0; i < bufferSize; ++i) {
-								sum += Math.abs(buffer[i]);
-							}
-							averages[lastBuffer % buffers.length] = (int) (sum / bufferSize);
+							// Log.v("hh", "onPeriodicNotification");
+
+							// long sum = 0;
+							// for (int i = 0; i < bufferSize; ++i) {
+							// sum += Math.abs(buffer[i]);
+							// }
+							 averages[lastBuffer % buffers.length] = calculateAverage(buffer);
 							lastBuffer = lastBuffer % buffers.length;
 							Log.v("hh", "onPeriodicNotification = " + averages[lastBuffer % buffers.length]);
 
@@ -85,14 +84,14 @@ public class MainActivity extends Activity {
 					recorder.startRecording();
 					short[] buffer = buffers[lastBuffer % buffers.length];
 					recorder.read(buffer, 0, bufferSize);
-					
+
 					while (true) {
 						if (isInterrupted()) {
 							recorder.stop();
 							recorder.release();
-							SystemClock.sleep(250);
 							break;
 						}
+						SystemClock.sleep(333);
 					}
 				}
 			};
@@ -100,6 +99,22 @@ public class MainActivity extends Activity {
 
 			recorderStarted = true;
 		}
+	}
+
+	private static short calculateAverage(short[] data) {
+
+		short average = 0;
+		long sum = 0;
+		int bufferSize = data.length;
+
+		for (int i = 0; i < bufferSize; i++) {
+			short value = data[i];
+			sum += value > 0 ? +value : -value;
+		}
+
+		average = (short) (sum / bufferSize);
+
+		return average;
 	}
 
 	private void stopListenToMicrophone() {
