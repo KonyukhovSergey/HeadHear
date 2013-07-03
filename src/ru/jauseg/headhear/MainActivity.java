@@ -1,20 +1,30 @@
 package ru.jauseg.headhear;
 
+import java.lang.annotation.RetentionPolicy;
+import java.util.Random;
+
 import android.app.Activity;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.AudioRecord.OnRecordPositionUpdateListener;
 import android.media.MediaRecorder.AudioSource;
+import android.media.MediaSyncEvent;
 import android.os.Bundle;
+import android.os.Debug;
 import android.os.SystemClock;
+import android.provider.Settings.System;
 import android.util.Log;
 import android.view.Menu;
 
 public class MainActivity extends Activity {
+	
+	private Random rnd;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		rnd = new Random(SystemClock.elapsedRealtime());
 
 		setContentView(R.layout.activity_main);
 	}
@@ -38,10 +48,11 @@ public class MainActivity extends Activity {
 	}
 
 	private Thread recordingThread;
-	private int bufferSize = 1024 * 4;
+	private int bufferSize = 1024;
 	private short[][] buffers = new short[16][bufferSize];
 	private int[] averages = new int[16];
 	private int lastBuffer = 0;
+	private short[] prevBuffer;
 
 	private AudioRecord recorder;
 	private boolean recorderStarted = false;
@@ -60,20 +71,12 @@ public class MainActivity extends Activity {
 					recorder.setRecordPositionUpdateListener(new OnRecordPositionUpdateListener() {
 						@Override
 						public void onPeriodicNotification(AudioRecord recorder) {
-
-							short[] buffer = buffers[++lastBuffer % buffers.length];
-							recorder.read(buffer, 0, bufferSize);
-							
-							// Log.v("hh", "onPeriodicNotification");
-
-							// long sum = 0;
-							// for (int i = 0; i < bufferSize; ++i) {
-							// sum += Math.abs(buffer[i]);
-							// }
-							 averages[lastBuffer % buffers.length] = calculateAverage(buffer);
-							lastBuffer = lastBuffer % buffers.length;
+							averages[lastBuffer % buffers.length] = calculateAverage(prevBuffer);
+							if(rnd.nextInt(10) == 1)
+							{
+								SystemClock.sleep(100);
+							}
 							Log.v("hh", "onPeriodicNotification = " + averages[lastBuffer % buffers.length]);
-
 						}
 
 						@Override
@@ -83,15 +86,17 @@ public class MainActivity extends Activity {
 					});
 					recorder.startRecording();
 					short[] buffer = buffers[lastBuffer % buffers.length];
-					recorder.read(buffer, 0, bufferSize);
 
 					while (true) {
+						prevBuffer = buffer; 
+						recorder.read(buffer, 0, bufferSize);
+						buffer = buffers[++lastBuffer % buffers.length];
+
 						if (isInterrupted()) {
 							recorder.stop();
 							recorder.release();
 							break;
 						}
-						SystemClock.sleep(333);
 					}
 				}
 			};
