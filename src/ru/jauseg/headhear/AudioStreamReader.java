@@ -5,6 +5,7 @@ import android.media.AudioRecord;
 import android.media.AudioRecord.OnRecordPositionUpdateListener;
 import android.media.MediaRecorder.AudioSource;
 import android.os.Process;
+import android.util.Log;
 
 public class AudioStreamReader
 {
@@ -19,7 +20,7 @@ public class AudioStreamReader
 	private boolean recorderStarted = false;
 
 	private int sampleRateInHz;
-	
+
 	private void init(int buffersCount, int bufferSize)
 	{
 		buffers = new short[buffersCount][bufferSize];
@@ -38,7 +39,7 @@ public class AudioStreamReader
 
 	public AudioStreamReader(OnBufferReadyListener onBufferReadyListener)
 	{
-		this(1024, 8, 44100, onBufferReadyListener);
+		this(8, 1024, 44100, onBufferReadyListener);
 	}
 
 	public void onBufferReadyListener(OnBufferReadyListener onBufferReadyListener)
@@ -111,6 +112,7 @@ public class AudioStreamReader
 			if (recordingThread != null && recordingThread.isAlive() && !recordingThread.isInterrupted())
 			{
 				recordingThread.interrupt();
+				Log.v("hh", "interrupt");
 			}
 			recorderStarted = false;
 		}
