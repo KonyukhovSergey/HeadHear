@@ -4,14 +4,13 @@ import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.AudioRecord.OnRecordPositionUpdateListener;
 import android.media.MediaRecorder.AudioSource;
+import android.os.Process;
 
 public class AudioStreamReader
 {
 	private OnBufferReadyListener onBufferReadyListener;
 	private Thread recordingThread;
 
-	private int bufferSize;
-	private int buffersCount;
 	private short[][] buffers;
 	private int lastBufferIndex;
 	private short[] prevBuffer;
@@ -20,20 +19,26 @@ public class AudioStreamReader
 	private boolean recorderStarted = false;
 
 	private int sampleRateInHz;
+	
+	private void init(int buffersCount, int bufferSize)
+	{
+		buffers = new short[buffersCount][bufferSize];
+		lastBufferIndex = 0;
+		prevBuffer = buffers[0];
+		recorderStarted = false;
+	}
 
-	public AudioStreamReader(int bufferSize, int buffersCount, int sampleRateInHz,
+	public AudioStreamReader(int buffersCount, int bufferSize, int sampleRateInHz,
 			OnBufferReadyListener onBufferReadyListener)
 	{
-		this.bufferSize = bufferSize;
-		this.buffersCount = buffersCount;
 		this.sampleRateInHz = sampleRateInHz;
 		this.onBufferReadyListener = onBufferReadyListener;
-		init();
+		init(buffersCount, bufferSize);
 	}
 
 	public AudioStreamReader(OnBufferReadyListener onBufferReadyListener)
 	{
-		this(1024, 16, 44100, onBufferReadyListener);
+		this(1024, 8, 44100, onBufferReadyListener);
 	}
 
 	public void onBufferReadyListener(OnBufferReadyListener onBufferReadyListener)
@@ -55,15 +60,15 @@ public class AudioStreamReader
 
 					recorder = new AudioRecord(AudioSource.MIC, sampleRateInHz, AudioFormat.CHANNEL_IN_MONO,
 							AudioFormat.ENCODING_PCM_16BIT, minBufferSize * 10);
-					
-					recorder.setPositionNotificationPeriod(bufferSize);
-					
+
+					recorder.setPositionNotificationPeriod(buffers[0].length);
+
 					recorder.setRecordPositionUpdateListener(new OnRecordPositionUpdateListener()
 					{
 						@Override
 						public void onPeriodicNotification(AudioRecord recorder)
 						{
-							if(onBufferReadyListener!=null)
+							if (onBufferReadyListener != null)
 							{
 								onBufferReadyListener.onBufferReady(prevBuffer);
 							}
@@ -75,25 +80,24 @@ public class AudioStreamReader
 						}
 					});
 
+					Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO);
+
 					recorder.startRecording();
-					
+
 					short[] buffer = buffers[lastBufferIndex % buffers.length];
 
-					while (true)
+					while (!isInterrupted())
 					{
 						prevBuffer = buffer;
-						recorder.read(buffer, 0, bufferSize);
+						recorder.read(buffer, 0, buffer.length);
 						buffer = buffers[++lastBufferIndex % buffers.length];
-
-						if (isInterrupted())
-						{
-							recorder.stop();
-							recorder.release();
-							break;
-						}
 					}
+
+					recorder.stop();
+					recorder.release();
 				}
 			};
+
 			recordingThread.start();
 
 			recorderStarted = true;
@@ -102,19 +106,14 @@ public class AudioStreamReader
 
 	public void stop()
 	{
-		if (recorderStarted) {
-			if (recordingThread != null && recordingThread.isAlive() && !recordingThread.isInterrupted()) {
+		if (recorderStarted)
+		{
+			if (recordingThread != null && recordingThread.isAlive() && !recordingThread.isInterrupted())
+			{
 				recordingThread.interrupt();
 			}
 			recorderStarted = false;
 		}
 	}
 
-	private void init()
-	{
-		buffers = new short[buffersCount][bufferSize];
-		lastBufferIndex = 0;
-		prevBuffer = buffers[0];
-		recorderStarted = false;
-	}
 }
