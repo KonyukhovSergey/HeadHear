@@ -63,19 +63,15 @@ public class MainActivity extends Activity {
 			recordingThread = new Thread() {
 				@Override
 				public void run() {
-					int minBufferSize = AudioRecord.getMinBufferSize(44100, AudioFormat.CHANNEL_CONFIGURATION_MONO,
+					int minBufferSize = AudioRecord.getMinBufferSize(44100, AudioFormat.CHANNEL_IN_MONO,
 							AudioFormat.ENCODING_PCM_16BIT);
-					recorder = new AudioRecord(AudioSource.MIC, 44100, AudioFormat.CHANNEL_CONFIGURATION_MONO,
+					recorder = new AudioRecord(AudioSource.MIC, 44100, AudioFormat.CHANNEL_IN_MONO,
 							AudioFormat.ENCODING_PCM_16BIT, minBufferSize * 10);
 					recorder.setPositionNotificationPeriod(bufferSize);
 					recorder.setRecordPositionUpdateListener(new OnRecordPositionUpdateListener() {
 						@Override
 						public void onPeriodicNotification(AudioRecord recorder) {
 							averages[lastBuffer % buffers.length] = calculateAverage(prevBuffer);
-							if(rnd.nextInt(10) == 1)
-							{
-								SystemClock.sleep(100);
-							}
 							Log.v("hh", "onPeriodicNotification = " + averages[lastBuffer % buffers.length]);
 						}
 
@@ -91,6 +87,11 @@ public class MainActivity extends Activity {
 						prevBuffer = buffer; 
 						recorder.read(buffer, 0, bufferSize);
 						buffer = buffers[++lastBuffer % buffers.length];
+						
+						if(rnd.nextInt(10) == 1)
+						{
+							SystemClock.sleep(100);
+						}
 
 						if (isInterrupted()) {
 							recorder.stop();
