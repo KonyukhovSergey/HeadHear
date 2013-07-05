@@ -12,6 +12,7 @@ public class MainActivity extends Activity implements OnBufferReadyListener
 	private Random rnd;
 
 	private AudioStreamReader audioStreamReader;
+	private AudioStreamPlayer audioStreamPlayer;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState)
@@ -20,6 +21,7 @@ public class MainActivity extends Activity implements OnBufferReadyListener
 
 		rnd = new Random(SystemClock.elapsedRealtime());
 		audioStreamReader = new AudioStreamReader(this);
+		audioStreamPlayer = new AudioStreamPlayer();
 
 		setContentView(R.layout.activity_main);
 
@@ -36,6 +38,7 @@ public class MainActivity extends Activity implements OnBufferReadyListener
 	protected void onPause()
 	{
 		audioStreamReader.stop();
+		audioStreamPlayer.stop();
 		super.onPause();
 	}
 
@@ -56,10 +59,32 @@ public class MainActivity extends Activity implements OnBufferReadyListener
 		return average;
 	}
 
+	private static void scale(int value, short[] data)
+	{
+		int length = data.length;
+
+		for (int i = 0; i < length; i++)
+		{
+			// data[i] = (short) ((((int) data[i]) * value) / 256);
+			data[i] = (short) (value * data[i]);
+		}
+	}
+
+	int count = 0;
+
 	@Override
 	public void onBufferReady(short[] data)
 	{
-		int t = calculateAverage(data);
-		//Log.v("hh", String.format("hh avg = %d", calculateAverage(data)));
+		scale(2, data);
+		audioStreamPlayer.play(data);
+
+		if (count > 5)
+		{
+			finish();
+		}
+
+	//	count++;
+		// int t = calculateAverage(data);
+		// Log.v("hh", String.format("hh avg = %d", calculateAverage(data)));
 	}
 }
