@@ -75,7 +75,7 @@ public class MainActivity extends Activity implements OnBufferReadyListener
 	@Override
 	public void onBufferReady(short[] data)
 	{
-		scale(2, data);
+		scale(64, data);
 		audioStreamPlayer.play(data);
 
 		if (count > 5)

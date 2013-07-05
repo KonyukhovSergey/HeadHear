@@ -60,7 +60,7 @@ public class AudioStreamPlayer
 						}
 						else
 						{
-							SystemClock.sleep(50);
+							SystemClock.sleep(100);
 							Log.v(TAG, "XPEHb = " + playIndex);
 						}
 
