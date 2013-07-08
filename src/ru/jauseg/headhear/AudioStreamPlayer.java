@@ -3,7 +3,6 @@ package ru.jauseg.headhear;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
-import android.os.Process;
 import android.os.SystemClock;
 import android.util.Log;
 
@@ -37,7 +36,7 @@ public class AudioStreamPlayer
 							AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT);
 
 					audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, sampleRateInHz,
-							AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, mAudioPlayBufferSize,
+							AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, mAudioPlayBufferSize * 2,
 							AudioTrack.MODE_STREAM);
 
 					// Process.setThreadPriority(Process.THREAD_PRIORITY_AUDIO);
@@ -80,8 +79,8 @@ public class AudioStreamPlayer
 				}
 			};
 
-			playerThread.start();
 			isPlay = true;
+			playerThread.start();
 		}
 	}
 

@@ -4,27 +4,36 @@ import java.util.Random;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.os.SystemClock;
 import android.util.Log;
 
 public class MainActivity extends Activity implements OnBufferReadyListener
 {
-	private Random rnd;
-
 	private AudioStreamReader audioStreamReader;
-	private AudioStreamPlayer audioStreamPlayer;
+	 private AudioStreamPlayer audioStreamPlayer;
+
+	private Handler bufferReadyHandler = new Handler()
+	{
+		public void handleMessage(Message msg)
+		{
+			if (msg.what == 2839)
+			{
+				onBufferReady((short[]) msg.obj);
+			}
+		};
+	};
 
 	@Override
 	public void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
 
-		rnd = new Random(SystemClock.elapsedRealtime());
-		audioStreamReader = new AudioStreamReader(this);
-		audioStreamPlayer = new AudioStreamPlayer();
+		audioStreamReader = new AudioStreamReader(bufferReadyHandler);
+		 audioStreamPlayer = new AudioStreamPlayer();
 
 		setContentView(R.layout.activity_main);
-
 	}
 
 	@Override
@@ -38,7 +47,8 @@ public class MainActivity extends Activity implements OnBufferReadyListener
 	protected void onPause()
 	{
 		audioStreamReader.stop();
-		audioStreamPlayer.stop();
+		bufferReadyHandler.removeMessages(2839);
+		 audioStreamPlayer.stop();
 		super.onPause();
 	}
 
@@ -48,13 +58,21 @@ public class MainActivity extends Activity implements OnBufferReadyListener
 		long sum = 0;
 		int bufferSize = data.length;
 
+		int min = data[0];
+		int max = data[0];
+
 		for (int i = 0; i < bufferSize; i++)
 		{
 			short value = data[i];
 			sum += value > 0 ? +value : -value;
+
+			min = value < min ? value : min;
+			max = value > max ? value : max;
 		}
 
 		average = (short) (sum / bufferSize);
+
+		Log.v("hh", String.format("hh avg = %d, min = %d, max = %d", average, min, max));
 
 		return average;
 	}
@@ -70,21 +88,13 @@ public class MainActivity extends Activity implements OnBufferReadyListener
 		}
 	}
 
-	int count = 0;
-
 	@Override
 	public void onBufferReady(short[] data)
 	{
-		scale(64, data);
-		audioStreamPlayer.play(data);
+		 scale(3, data);
+		 audioStreamPlayer.play(data);
 
-		if (count > 5)
-		{
-			finish();
-		}
-
-	//	count++;
-		// int t = calculateAverage(data);
+		//int t = calculateAverage(data);
 		// Log.v("hh", String.format("hh avg = %d", calculateAverage(data)));
 	}
 }
