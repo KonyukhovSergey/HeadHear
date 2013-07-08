@@ -32,11 +32,8 @@ public class AudioStreamPlayer
 				@Override
 				public void run()
 				{
-					int mAudioPlayBufferSize = AudioTrack.getMinBufferSize(sampleRateInHz,
-							AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT);
-
 					audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, sampleRateInHz,
-							AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, mAudioPlayBufferSize * 2,
+							AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, AudioConfig.BUFFER_SIZE ,
 							AudioTrack.MODE_STREAM);
 
 					// Process.setThreadPriority(Process.THREAD_PRIORITY_AUDIO);
@@ -52,6 +49,7 @@ public class AudioStreamPlayer
 
 						if (playIndex != addedIndex)
 						{
+							// Log.v(TAG, "Start play: " + buffer.length);
 							audioTrack.write(buffer, 0, buffer.length);
 							indexPlay++;
 							playIndex = (playIndex + 1) % buffers.length;
@@ -79,8 +77,8 @@ public class AudioStreamPlayer
 				}
 			};
 
-			isPlay = true;
 			playerThread.start();
+			isPlay = true;
 		}
 	}
 

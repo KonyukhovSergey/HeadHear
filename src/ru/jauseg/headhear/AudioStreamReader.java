@@ -54,11 +54,8 @@ public class AudioStreamReader
 				@Override
 				public void run()
 				{
-					int minBufferSize = AudioRecord.getMinBufferSize(sampleRateInHz, AudioFormat.CHANNEL_IN_MONO,
-							AudioFormat.ENCODING_PCM_16BIT);
-
-					recorder = new AudioRecord(AudioSource.VOICE_COMMUNICATION, sampleRateInHz,
-							AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, minBufferSize*2);
+					recorder = new AudioRecord(AudioSource.MIC, sampleRateInHz, AudioFormat.CHANNEL_IN_MONO,
+							AudioFormat.ENCODING_PCM_16BIT, AudioConfig.BUFFER_SIZE * AudioConfig.BUFFERS_COUNT * 2);
 
 					recorder.startRecording();
 
@@ -67,13 +64,13 @@ public class AudioStreamReader
 					while (!isInterrupted())
 					{
 						recorder.read(buffer, 0, buffer.length);
-						
-						//Log.v(TAG, "read ready");
+
+						// Log.v(TAG, "read ready");
 
 						if (bufferReadyHandler != null)
 						{
 							bufferReadyHandler.sendMessage(bufferReadyHandler.obtainMessage(2839, buffer));
-							//Log.v(TAG, "message send");
+							// Log.v(TAG, "message send");
 						}
 
 						currentBufferIndex = (currentBufferIndex + 1) % buffers.length;

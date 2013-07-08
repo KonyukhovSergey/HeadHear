@@ -12,7 +12,7 @@ import android.util.Log;
 public class MainActivity extends Activity implements OnBufferReadyListener
 {
 	private AudioStreamReader audioStreamReader;
-	 private AudioStreamPlayer audioStreamPlayer;
+	private AudioStreamPlayer audioStreamPlayer;
 
 	private Handler bufferReadyHandler = new Handler()
 	{
@@ -31,7 +31,7 @@ public class MainActivity extends Activity implements OnBufferReadyListener
 		super.onCreate(savedInstanceState);
 
 		audioStreamReader = new AudioStreamReader(bufferReadyHandler);
-		 audioStreamPlayer = new AudioStreamPlayer();
+		audioStreamPlayer = new AudioStreamPlayer();
 
 		setContentView(R.layout.activity_main);
 	}
@@ -48,7 +48,7 @@ public class MainActivity extends Activity implements OnBufferReadyListener
 	{
 		audioStreamReader.stop();
 		bufferReadyHandler.removeMessages(2839);
-		 audioStreamPlayer.stop();
+		audioStreamPlayer.stop();
 		super.onPause();
 	}
 
@@ -91,10 +91,11 @@ public class MainActivity extends Activity implements OnBufferReadyListener
 	@Override
 	public void onBufferReady(short[] data)
 	{
-		 scale(3, data);
-		 audioStreamPlayer.play(data);
+		//Log.v("hh", "onBufferReady: " + data);
+		 scale(4, data);
+		audioStreamPlayer.play(data);
 
-		//int t = calculateAverage(data);
+		// int t = calculateAverage(data);
 		// Log.v("hh", String.format("hh avg = %d", calculateAverage(data)));
 	}
 }
