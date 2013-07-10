@@ -72,7 +72,7 @@ public class MainActivity extends Activity implements OnBufferReadyListener
 
 		average = (short) (sum / bufferSize);
 
-		Log.v("hh", String.format("hh avg = %d, min = %d, max = %d", average, min, max));
+		//Log.v("hh", String.format("hh avg = %d, min = %d, max = %d", average, min, max));
 
 		return average;
 	}
@@ -92,10 +92,9 @@ public class MainActivity extends Activity implements OnBufferReadyListener
 	public void onBufferReady(short[] data)
 	{
 		//Log.v("hh", "onBufferReady: " + data);
-		 scale(4, data);
+		// scale(4, data);
 		audioStreamPlayer.play(data);
 
-		// int t = calculateAverage(data);
-		// Log.v("hh", String.format("hh avg = %d", calculateAverage(data)));
+		 //int t = calculateAverage(data);
 	}
 }

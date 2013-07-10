@@ -2,12 +2,8 @@ package ru.jauseg.headhear;
 
 import android.media.AudioFormat;
 import android.media.AudioRecord;
-import android.media.AudioRecord.OnRecordPositionUpdateListener;
 import android.media.MediaRecorder.AudioSource;
 import android.os.Handler;
-import android.os.Message;
-import android.os.Process;
-import android.util.Log;
 
 public class AudioStreamReader
 {
@@ -17,7 +13,6 @@ public class AudioStreamReader
 
 	private short[][] buffers;
 	private int currentBufferIndex;
-	// private short[] prevBuffer;
 
 	private AudioRecord recorder;
 	private boolean recorderStarted = false;
@@ -54,7 +49,7 @@ public class AudioStreamReader
 				@Override
 				public void run()
 				{
-					recorder = new AudioRecord(AudioSource.MIC, sampleRateInHz, AudioFormat.CHANNEL_IN_MONO,
+					recorder = new AudioRecord(AudioSource.DEFAULT, sampleRateInHz, AudioFormat.CHANNEL_IN_MONO,
 							AudioFormat.ENCODING_PCM_16BIT, AudioConfig.BUFFER_SIZE * AudioConfig.BUFFERS_COUNT * 2);
 
 					recorder.startRecording();
@@ -65,12 +60,9 @@ public class AudioStreamReader
 					{
 						recorder.read(buffer, 0, buffer.length);
 
-						// Log.v(TAG, "read ready");
-
 						if (bufferReadyHandler != null)
 						{
 							bufferReadyHandler.sendMessage(bufferReadyHandler.obtainMessage(2839, buffer));
-							// Log.v(TAG, "message send");
 						}
 
 						currentBufferIndex = (currentBufferIndex + 1) % buffers.length;
@@ -95,7 +87,6 @@ public class AudioStreamReader
 			if (recordingThread != null && recordingThread.isAlive() && !recordingThread.isInterrupted())
 			{
 				recordingThread.interrupt();
-				// Log.v("hh", "interrupt");
 			}
 
 			recorderStarted = false;

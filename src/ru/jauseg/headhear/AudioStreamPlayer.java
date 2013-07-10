@@ -3,7 +3,6 @@ package ru.jauseg.headhear;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
-import android.os.SystemClock;
 import android.util.Log;
 
 public class AudioStreamPlayer
@@ -11,6 +10,7 @@ public class AudioStreamPlayer
 	protected static final String TAG = "AudioStreamPlayer";
 	private Thread playerThread;
 	private boolean isPlay = false;
+	private boolean isNeedNotify = false;
 
 	private short buffers[][];
 	private int playIndex;
@@ -19,9 +19,7 @@ public class AudioStreamPlayer
 	private AudioTrack audioTrack;
 	private int sampleRateInHz;
 
-	private int indexPlay = 0;
-	private int indexAdded = 0;
-	private int deltaPrev = 0;
+	private Object locker = new Object();
 
 	private void startPlayThread()
 	{
@@ -33,47 +31,43 @@ public class AudioStreamPlayer
 				public void run()
 				{
 					audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, sampleRateInHz,
-							AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, AudioConfig.BUFFER_SIZE ,
+							AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, AudioConfig.BUFFER_SIZE,
 							AudioTrack.MODE_STREAM);
-
-					// Process.setThreadPriority(Process.THREAD_PRIORITY_AUDIO);
 
 					audioTrack.play();
 
 					while (!isInterrupted())
 					{
-						// Log.v(TAG, "thread: addedIndex = " + addedIndex +
-						// " playIndex = " + playIndex);
+						short[] buffer;
 
-						short[] buffer = buffers[playIndex];
-
-						if (playIndex != addedIndex)
+						synchronized (locker)
 						{
-							// Log.v(TAG, "Start play: " + buffer.length);
-							audioTrack.write(buffer, 0, buffer.length);
-							indexPlay++;
+							if (playIndex == addedIndex)
+							{
+								try
+								{
+									isNeedNotify = true;
+									locker.wait();
+								}
+								catch (InterruptedException e)
+								{
+									break;
+								}
+							}
+
+							buffer = buffers[playIndex];
+						}
+
+						audioTrack.write(buffer, 0, buffer.length);
+
+						synchronized (locker)
+						{
 							playIndex = (playIndex + 1) % buffers.length;
-
 						}
-						else
-						{
-							SystemClock.sleep(100);
-							Log.v(TAG, "XPEHb = " + playIndex);
-						}
-
-						int deltaNew = indexAdded - indexPlay;
-						if (deltaNew != deltaPrev)
-						{
-							deltaPrev = deltaNew;
-							Log.v(TAG, "deltaUpdate: delta = " + deltaNew);
-
-						}
-
 					}
 
 					audioTrack.stop();
 					isPlay = false;
-					Log.v("hh", "interrupted");
 				}
 			};
 
@@ -102,13 +96,24 @@ public class AudioStreamPlayer
 
 	public void play(short[] buffer)
 	{
-		// Log.v(TAG, "play: addedIndex = " + addedIndex + " playIndex = " +
-		// playIndex);
-		buffers[addedIndex] = buffer;
-		addedIndex = (addedIndex + 1) % buffers.length;
-		indexAdded++;
+		if (!isPlay)
+		{
+			startPlayThread();
+		}
 
-		startPlayThread();
+		synchronized (locker)
+		{
+			buffers[addedIndex] = buffer;
+
+			addedIndex = (addedIndex + 1) % buffers.length;
+
+			if (isNeedNotify)
+			{
+				isNeedNotify = false;
+				locker.notifyAll();
+			}
+		}
+
 	}
 
 	public void stop()
@@ -117,7 +122,6 @@ public class AudioStreamPlayer
 		{
 			if (playerThread != null && playerThread.isAlive() && !playerThread.isInterrupted())
 			{
-				Log.v("hh", "interrupting");
 				playerThread.interrupt();
 			}
 			isPlay = false;
