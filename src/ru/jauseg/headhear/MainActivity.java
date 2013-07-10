@@ -92,7 +92,7 @@ public class MainActivity extends Activity implements OnBufferReadyListener
 	public void onBufferReady(short[] data)
 	{
 		//Log.v("hh", "onBufferReady: " + data);
-		// scale(4, data);
+		 scale(3, data);
 		audioStreamPlayer.play(data);
 
 		 //int t = calculateAverage(data);

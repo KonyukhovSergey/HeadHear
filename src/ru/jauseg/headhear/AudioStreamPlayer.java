@@ -3,6 +3,7 @@ package ru.jauseg.headhear;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
+import android.os.SystemClock;
 import android.util.Log;
 
 public class AudioStreamPlayer
@@ -40,6 +41,8 @@ public class AudioStreamPlayer
 					{
 						short[] buffer;
 
+						long timeWait = SystemClock.elapsedRealtime();
+
 						synchronized (locker)
 						{
 							if (playIndex == addedIndex)
@@ -58,7 +61,14 @@ public class AudioStreamPlayer
 							buffer = buffers[playIndex];
 						}
 
+						timeWait = SystemClock.elapsedRealtime() - timeWait;
+
+						long timePlay = SystemClock.elapsedRealtime();
 						audioTrack.write(buffer, 0, buffer.length);
+						timePlay = SystemClock.elapsedRealtime() - timePlay;
+						long delta = (long) (timePlay + timeWait - ((double) AudioConfig.BUFFER_SIZE * 1000.0 / (double) AudioConfig.SAMPLE_RATE_IN_HZ));
+
+						Log.v(TAG, "total delta = " + delta + " timePlay = " + timePlay + " time wait = " + timeWait);
 
 						synchronized (locker)
 						{
@@ -98,6 +108,7 @@ public class AudioStreamPlayer
 	{
 		if (!isPlay)
 		{
+			SystemClock.sleep(500);
 			startPlayThread();
 		}
 
