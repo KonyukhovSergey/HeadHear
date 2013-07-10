@@ -49,7 +49,7 @@ public class AudioStreamReader
 				@Override
 				public void run()
 				{
-					recorder = new AudioRecord(AudioSource.DEFAULT, sampleRateInHz, AudioFormat.CHANNEL_IN_MONO,
+					recorder = new AudioRecord(AudioSource.MIC, sampleRateInHz, AudioFormat.CHANNEL_IN_MONO,
 							AudioFormat.ENCODING_PCM_16BIT, AudioConfig.BUFFER_SIZE * AudioConfig.BUFFERS_COUNT * 2);
 
 					recorder.startRecording();

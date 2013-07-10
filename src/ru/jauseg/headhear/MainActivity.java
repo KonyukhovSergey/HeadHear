@@ -8,11 +8,16 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
 import android.util.Log;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.TextView;
 
 public class MainActivity extends Activity implements OnBufferReadyListener
 {
 	private AudioStreamReader audioStreamReader;
 	private AudioStreamPlayer audioStreamPlayer;
+
+	private int scale = 1;
 
 	private Handler bufferReadyHandler = new Handler()
 	{
@@ -34,6 +39,11 @@ public class MainActivity extends Activity implements OnBufferReadyListener
 		audioStreamPlayer = new AudioStreamPlayer();
 
 		setContentView(R.layout.activity_main);
+		
+		findViewById(R.id.button_dec).setOnClickListener(onClickListener);
+		findViewById(R.id.button_inc).setOnClickListener(onClickListener);
+
+		updateInfo();
 	}
 
 	@Override
@@ -72,7 +82,8 @@ public class MainActivity extends Activity implements OnBufferReadyListener
 
 		average = (short) (sum / bufferSize);
 
-		//Log.v("hh", String.format("hh avg = %d, min = %d, max = %d", average, min, max));
+		// Log.v("hh", String.format("hh avg = %d, min = %d, max = %d", average,
+		// min, max));
 
 		return average;
 	}
@@ -91,10 +102,41 @@ public class MainActivity extends Activity implements OnBufferReadyListener
 	@Override
 	public void onBufferReady(short[] data)
 	{
-		//Log.v("hh", "onBufferReady: " + data);
-		 scale(3, data);
+		// Log.v("hh", "onBufferReady: " + data);
+		scale(scale, data);
 		audioStreamPlayer.play(data);
 
-		 //int t = calculateAverage(data);
+		// int t = calculateAverage(data);
 	}
+
+	private void updateInfo()
+	{
+		TextView textInfoScale = (TextView) findViewById(R.id.text_scale);
+		textInfoScale.setText(String.format("Scale = %d", scale));
+	}
+
+	private OnClickListener onClickListener = new OnClickListener()
+	{
+		@Override
+		public void onClick(View v)
+		{
+			switch (v.getId())
+			{
+			case R.id.button_dec:
+				if (scale > 1)
+				{
+					scale--;
+				}
+				break;
+
+			case R.id.button_inc:
+				if (scale < 32)
+				{
+					scale++;
+				}
+				break;
+			}
+			updateInfo();
+		}
+	};
 }

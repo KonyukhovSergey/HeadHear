@@ -66,9 +66,9 @@ public class AudioStreamPlayer
 						long timePlay = SystemClock.elapsedRealtime();
 						audioTrack.write(buffer, 0, buffer.length);
 						timePlay = SystemClock.elapsedRealtime() - timePlay;
-						long delta = (long) (timePlay + timeWait - ((double) AudioConfig.BUFFER_SIZE * 1000.0 / (double) AudioConfig.SAMPLE_RATE_IN_HZ));
+						//long delta = (long) (timePlay + timeWait - ((double) AudioConfig.BUFFER_SIZE * 1000.0 / (double) AudioConfig.SAMPLE_RATE_IN_HZ));
 
-						Log.v(TAG, "total delta = " + delta + " timePlay = " + timePlay + " time wait = " + timeWait);
+						//Log.v(TAG, "total delta = " + delta + " timePlay = " + timePlay + " time wait = " + timeWait);
 
 						synchronized (locker)
 						{
@@ -108,7 +108,7 @@ public class AudioStreamPlayer
 	{
 		if (!isPlay)
 		{
-			SystemClock.sleep(500);
+			//SystemClock.sleep(500);
 			startPlayThread();
 		}
 
